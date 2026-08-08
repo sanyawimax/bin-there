@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -13,6 +14,7 @@ from ai.classifier import classify_waste
 # --------------------------------
 
 app = Flask(__name__)
+CORS(app)
 
 
 # --------------------------------
@@ -81,7 +83,7 @@ def classify():
 
     # Add points and timestamp
     result["points"] = points
-    result["timestamp"] = datetime.now()
+    result["timestamp"] = datetime.now().isoformat()
 
     # --------------------------------
     # SAVE A COPY TO MONGODB
