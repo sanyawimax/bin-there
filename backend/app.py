@@ -5,6 +5,7 @@ from bson import ObjectId
 from flask import Flask, request, jsonify
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 from backend.database import (
     users,
     waste_records,
@@ -139,6 +140,87 @@ def classify():
     response_data["id"] = str(inserted.inserted_id)
 
     return jsonify(response_data)
+
+# --------------------------------
+# AUTH: SIGNUP
+# --------------------------------
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "JSON body required"}), 400
+
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+    building = data.get("building")
+
+    if not name or not email or not password:
+        return jsonify({"error": "name, email, and password are required"}), 400
+
+    # Check if email is already registered
+    existing_user = users.find_one({"email": email})
+    if existing_user:
+        return jsonify({"error": "Email already registered"}), 409
+
+    # Hash the password before storing
+    password_hash = generate_password_hash(password)
+
+    new_user = {
+        "name": name,
+        "email": email,
+        "password_hash": password_hash,
+        "building": building,
+        "points": 0,
+        "total_recycled_kg": 0
+    }
+
+    inserted = users.insert_one(new_user)
+
+    return jsonify({
+        "user_id": str(inserted.inserted_id),
+        "name": name,
+        "email": email,
+        "building": building,
+        "points": 0,
+        "total_recycled_kg": 0
+    }), 201
+
+
+# --------------------------------
+# AUTH: LOGIN
+# --------------------------------
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "JSON body required"}), 400
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "email and password are required"}), 400
+
+    user = users.find_one({"email": email})
+
+    if not user or not check_password_hash(user.get("password_hash", ""), password):
+        return jsonify({"error": "Invalid email or password"}), 401
+
+    return jsonify({
+        "user_id": str(user["_id"]),
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "building": user.get("building"),
+        "points": user.get("points", 0),
+        "total_recycled_kg": user.get("total_recycled_kg", 0)
+    })
+
+
 
 # --------------------------------
 # GET USER PROFILE

@@ -20,6 +20,24 @@ print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
 
+
+print("\n========== TEST SIGNUP ==========")
+
+signup_data = {
+    "name": "Test User",
+    "email": "testuser123@example.com",
+    "password": "test1234",
+    "building": "Building A"
+}
+
+response = requests.post(
+    "http://127.0.0.1:5000/signup",
+    json=signup_data
+)
+
+print("Status code:", response.status_code)
+print("Response:", response.json())
+
 # -------------------------
 # Test /user
 # -------------------------
