@@ -9,6 +9,8 @@ function Scan() {
 
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const handleImageChange = (event) => {
     const selectedFile = event.target.files[0];
 
@@ -32,6 +34,7 @@ function Scan() {
       const formData = new FormData();
 
       formData.append("image", file);
+      formData.append("user_id", user.user_id);
 
       const response = await fetch(
         "http://127.0.0.1:5000/classify",

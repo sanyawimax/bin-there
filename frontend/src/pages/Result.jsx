@@ -19,13 +19,18 @@ function Result() {
       {/* Header */}
 
       <header className="top-bar">
-        <Link to="/scan" className="back-button">
+
+        <Link
+          to="/scan"
+          className="back-button"
+        >
           ←
         </Link>
 
         <h1>Result</h1>
 
         <div></div>
+
       </header>
 
 
@@ -94,7 +99,8 @@ function Result() {
           <div className="confidence">
 
             <span>
-              {confidenceLabels[aiResult.confidence] || "Unknown confidence"}
+              {confidenceLabels[aiResult.confidence] ||
+                "Unknown confidence"}
             </span>
 
             <small>
@@ -125,7 +131,8 @@ function Result() {
             </h3>
 
             <p>
-              {aiResult.disposal || "No disposal instructions available."}
+              {aiResult.disposal ||
+                "No disposal instructions available."}
             </p>
 
           </div>
@@ -152,6 +159,7 @@ function Result() {
         {/* Low confidence warning */}
 
         {aiResult.confidence === "low" && (
+
           <div className="confidence-warning">
 
             <span>
@@ -172,6 +180,7 @@ function Result() {
             </div>
 
           </div>
+
         )}
 
 
@@ -186,11 +195,34 @@ function Result() {
           <div>
 
             <strong>
-              +{aiResult.points || 0} Points
+              +{aiResult.points ?? 0} Points
             </strong>
 
             <p>
               Added to your BinThere account
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* Estimated weight */}
+
+        <div className="points-earned">
+
+          <span>
+            ♻️
+          </span>
+
+          <div>
+
+            <strong>
+              {aiResult.estimated_weight_kg ?? 0} kg
+            </strong>
+
+            <p>
+              Estimated waste diverted
             </p>
 
           </div>
@@ -221,4 +253,3 @@ function Result() {
 }
 
 export default Result;
-

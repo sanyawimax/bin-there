@@ -4,6 +4,7 @@ from datetime import datetime
 
 from bson import ObjectId
 from flask import Flask, request, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 from dotenv import load_dotenv
 from google.genai import errors
@@ -803,7 +804,6 @@ def get_pickups():
 # --------------------------------
 # MUNICIPAL DASHBOARD STATS
 # --------------------------------
-
 @app.route("/municipal/stats", methods=["GET"])
 def get_municipal_stats():
 
