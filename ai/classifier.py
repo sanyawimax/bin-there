@@ -55,7 +55,7 @@ def classify_waste(image_path):
     {
         "category": "...",
         "object": "...",
-        "explanation": "..."
+        "explanation": "...",
         "confidence": "..."
     }
 
@@ -64,7 +64,7 @@ def classify_waste(image_path):
 
     # Ask Gemini to identify it
     response = client.models.generate_content(
-        model="gemini-3.6-flash",
+        model="gemini-3.5-flash",
         contents=[prompt, image]
     )
 
