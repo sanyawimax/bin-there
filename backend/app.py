@@ -1,12 +1,21 @@
 import os
+import sys
 from datetime import datetime
 
+from bson import ObjectId
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
-from pymongo import MongoClient
 from google.genai import errors
 
+# Allow imports from project root
+sys.path.append(
+    os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))
+    )
+)
+
+from database import users, waste_records
 from ai.classifier import classify_waste
 
 
@@ -16,21 +25,6 @@ from ai.classifier import classify_waste
 
 app = Flask(__name__)
 CORS(app)
-
-
-# --------------------------------
-# MONGODB
-# --------------------------------
-
-load_dotenv()
-
-mongo_uri = os.getenv("MONGO_URI")
-
-client = MongoClient(mongo_uri)
-
-db = client["binthere"]
-
-waste_records = db["waste_records"]
 
 
 # --------------------------------
@@ -47,6 +41,24 @@ POINTS = {
     "Hazardous": 25,
     "Textile": 20,
     "Other": 0
+}
+
+
+# --------------------------------
+# ESTIMATED WEIGHT
+# --------------------------------
+
+ESTIMATED_WEIGHT_KG = {
+    "plastic": 0.02,
+    "paper": 0.05,
+    "glass": 0.30,
+    "metal": 0.15,
+    "e-waste": 0.20,
+    "wet/organic": 0.10,
+    "organic": 0.10,
+    "hazardous": 0.10,
+    "textile": 0.10,
+    "other": 0
 }
 
 
@@ -71,7 +83,43 @@ def classify():
     try:
 
         # --------------------------------
-        # CHECK UPLOADED IMAGE
+        # CHECK USER ID
+        # --------------------------------
+
+        user_id = request.form.get("user_id")
+
+        if not user_id:
+            return jsonify({
+                "error": "user_id is required"
+            }), 400
+
+        # --------------------------------
+        # CONVERT USER ID
+        # --------------------------------
+
+        try:
+            user_object_id = ObjectId(user_id)
+
+        except Exception:
+            return jsonify({
+                "error": "Invalid user ID"
+            }), 400
+
+        # --------------------------------
+        # CHECK USER
+        # --------------------------------
+
+        user = users.find_one({
+            "_id": user_object_id
+        })
+
+        if not user:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+
+        # --------------------------------
+        # CHECK IMAGE
         # --------------------------------
 
         if "image" not in request.files:
@@ -87,7 +135,7 @@ def classify():
             }), 400
 
         # --------------------------------
-        # SAVE TEMPORARILY
+        # SAVE IMAGE TEMPORARILY
         # --------------------------------
 
         image.save(image_path)
@@ -115,16 +163,49 @@ def classify():
 
         points = POINTS[category]
 
-        result["points"] = points
-        result["timestamp"] = datetime.now().isoformat()
+        estimated_weight = ESTIMATED_WEIGHT_KG.get(
+            category.lower(),
+            0
+        )
 
         # --------------------------------
-        # SAVE TO MONGODB
+        # ADD DATA TO RESULT
+        # --------------------------------
+
+        result["points"] = points
+        result["estimated_weight_kg"] = estimated_weight
+
+        # Keep datetime object in MongoDB
+        timestamp = datetime.now()
+
+        result["timestamp"] = timestamp
+
+        # Link waste record to user
+        result["user_id"] = user_object_id
+
+        # --------------------------------
+        # UPDATE USER POINTS
+        # --------------------------------
+
+        users.update_one(
+            {"_id": user_object_id},
+            {
+                "$inc": {
+                    "points": points,
+                    "total_recycled_kg": estimated_weight
+                }
+            }
+        )
+
+        # --------------------------------
+        # SAVE WASTE RECORD
         # --------------------------------
 
         record_to_save = result.copy()
 
-        inserted = waste_records.insert_one(record_to_save)
+        inserted = waste_records.insert_one(
+            record_to_save
+        )
 
         # --------------------------------
         # RESPONSE TO FRONTEND
@@ -132,9 +213,19 @@ def classify():
 
         response_data = result.copy()
 
-        response_data["id"] = str(inserted.inserted_id)
+        response_data["user_id"] = str(
+            user_object_id
+        )
+
+        response_data["id"] = str(
+            inserted.inserted_id
+        )
+
+        # Convert datetime for JSON
+        response_data["timestamp"] = timestamp.isoformat()
 
         return jsonify(response_data), 200
+
 
     # --------------------------------
     # GEMINI API ERRORS
@@ -146,12 +237,18 @@ def classify():
 
         if e.code == 429:
             return jsonify({
-                "error": "AI service is temporarily unavailable. Please try again later."
+                "error": (
+                    "AI service is temporarily unavailable. "
+                    "Please try again later."
+                )
             }), 429
 
         return jsonify({
-            "error": "The AI service could not process your image."
+            "error": (
+                "The AI service could not process your image."
+            )
         }), 502
+
 
     # --------------------------------
     # OTHER SERVER ERRORS
@@ -165,6 +262,7 @@ def classify():
             "error": "Something went wrong on the server."
         }), 500
 
+
     # --------------------------------
     # DELETE TEMP IMAGE
     # --------------------------------
@@ -173,5 +271,102 @@ def classify():
 
         if os.path.exists(image_path):
             os.remove(image_path)
+
+
+# --------------------------------
+# GET USER PROFILE
+# --------------------------------
+
+@app.route("/user/<user_id>", methods=["GET"])
+def get_user(user_id):
+
+    try:
+        user_object_id = ObjectId(user_id)
+
+    except Exception:
+        return jsonify({
+            "error": "Invalid user ID"
+        }), 400
+
+    user = users.find_one({
+        "_id": user_object_id
+    })
+
+    if not user:
+        return jsonify({
+            "error": "User not found"
+        }), 404
+
+    return jsonify({
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "points": user.get("points", 0),
+        "building": user.get("building"),
+        "total_recycled_kg": user.get(
+            "total_recycled_kg",
+            0
+        )
+    })
+
+
+# --------------------------------
+# GET USER HISTORY
+# --------------------------------
+
+@app.route("/history/<user_id>", methods=["GET"])
+def get_history(user_id):
+
+    try:
+        user_object_id = ObjectId(user_id)
+
+    except Exception:
+        return jsonify({
+            "error": "Invalid user ID"
+        }), 400
+
+    user = users.find_one({
+        "_id": user_object_id
+    })
+
+    if not user:
+        return jsonify({
+            "error": "User not found"
+        }), 404
+
+    records = waste_records.find(
+        {"user_id": user_object_id}
+    ).sort(
+        "timestamp",
+        -1
+    )
+
+    history = []
+
+    for record in records:
+
+        timestamp = record.get("timestamp")
+
+        history.append({
+            "category": record.get("category"),
+            "object": record.get("object"),
+            "points": record.get("points", 0),
+            "estimated_weight_kg": record.get(
+                "estimated_weight_kg",
+                0
+            ),
+            "timestamp": (
+                timestamp.isoformat()
+                if timestamp
+                else None
+            )
+        })
+
+    return jsonify(history)
+
+
+# --------------------------------
+# RUN SERVER
+# --------------------------------
+
 if __name__ == "__main__":
     app.run(debug=True)
