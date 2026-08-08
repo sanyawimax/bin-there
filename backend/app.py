@@ -38,6 +38,14 @@ POINTS = {
     "Other": 0
 }
 
+ESTIMATED_WEIGHT_KG = {
+    "plastic": 0.02,
+    "paper": 0.05,
+    "glass": 0.30,
+    "metal": 0.15,
+    "e-waste": 0.20,
+    "organic": 0.10
+}
 
 # --------------------------------
 # HOME
@@ -86,8 +94,15 @@ def classify():
 
     # Calculate points
     points = POINTS.get(category, 0)
+    # get estimated weight
+    estimated_weight = ESTIMATED_WEIGHT_KG.get(
+    category.lower(),
+    0
+    )
+
 
     result["points"] = points
+    result["estimated_weight_kg"] = estimated_weight
     result["timestamp"] = datetime.now()
 
     # Link record to user
@@ -96,7 +111,12 @@ def classify():
     # Update user's points
     users.update_one(
         {"_id": user_object_id},
-        {"$inc": {"points": points}}
+        {
+        "$inc": {
+            "points": points,
+            "total_recycled_kg": estimated_weight
+        }
+    }
     )
 
     # Save waste record
@@ -113,6 +133,71 @@ def classify():
     response_data["id"] = str(inserted.inserted_id)
 
     return jsonify(response_data)
+
+# Get user profile
+
+@app.route("/user/<user_id>", methods=["GET"])
+def get_user(user_id):
+
+
+    # Convert the ID from a string to MongoDB ObjectId
+    try:
+        user_object_id = ObjectId(user_id)
+    except Exception:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    # Find the user
+    user = users.find_one({"_id": user_object_id})
+
+    # User doesn't exist
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Prepare response
+    return jsonify({
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "points": user.get("points", 0),
+        "building": user.get("building"),
+        "total_recycled_kg": user.get("total_recycled_kg", 0)
+    })
+
+@app.route("/history/<user_id>", methods=["GET"])
+def get_history(user_id):
+
+    # Convert ID to MongoDB ObjectId
+    try:
+        user_object_id = ObjectId(user_id)
+    except Exception:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    # Check whether user exists
+    user = users.find_one({"_id": user_object_id})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Find this user's waste records
+    records = waste_records.find(
+        {"user_id": user_object_id}
+    ).sort("timestamp", -1)
+
+    history = []
+
+    for record in records:
+        history.append({
+            "category": record.get("category"),
+            "object": record.get("object"),
+            "points": record.get("points", 0),
+            "estimated_weight_kg": record.get(
+                "estimated_weight_kg", 0
+            ),
+            "timestamp": record.get("timestamp").isoformat()
+            if record.get("timestamp")
+            else None
+        })
+
+    return jsonify(history)
 # --------------------------------
 # RUN SERVER
 # --------------------------------
