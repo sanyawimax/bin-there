@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from google.genai import errors
 
 from ai.classifier import classify_waste
 
@@ -65,49 +66,112 @@ def home():
 @app.route("/classify", methods=["POST"])
 def classify():
 
-    # Get uploaded image
-    image = request.files["image"]
-
-    # Save temporarily
     image_path = "temp_image.jpg"
-    image.save(image_path)
 
-    # Gemini classification
-    result = classify_waste(image_path)
+    try:
 
-    # Get category
-    category = result["category"]
+        # --------------------------------
+        # CHECK UPLOADED IMAGE
+        # --------------------------------
 
-    # Calculate points
-    points = POINTS.get(category, 0)
+        if "image" not in request.files:
+            return jsonify({
+                "error": "No image was uploaded."
+            }), 400
 
-    # Add points and timestamp
-    result["points"] = points
-    result["timestamp"] = datetime.now().isoformat()
+        image = request.files["image"]
+
+        if image.filename == "":
+            return jsonify({
+                "error": "No image was selected."
+            }), 400
+
+        # --------------------------------
+        # SAVE TEMPORARILY
+        # --------------------------------
+
+        image.save(image_path)
+
+        # --------------------------------
+        # GEMINI CLASSIFICATION
+        # --------------------------------
+
+        result = classify_waste(image_path)
+
+        # --------------------------------
+        # CHECK AI RESULT
+        # --------------------------------
+
+        category = result.get("category")
+
+        if category not in POINTS:
+            return jsonify({
+                "error": "AI returned an invalid waste category."
+            }), 500
+
+        # --------------------------------
+        # CALCULATE POINTS
+        # --------------------------------
+
+        points = POINTS[category]
+
+        result["points"] = points
+        result["timestamp"] = datetime.now().isoformat()
+
+        # --------------------------------
+        # SAVE TO MONGODB
+        # --------------------------------
+
+        record_to_save = result.copy()
+
+        inserted = waste_records.insert_one(record_to_save)
+
+        # --------------------------------
+        # RESPONSE TO FRONTEND
+        # --------------------------------
+
+        response_data = result.copy()
+
+        response_data["id"] = str(inserted.inserted_id)
+
+        return jsonify(response_data), 200
 
     # --------------------------------
-    # SAVE A COPY TO MONGODB
+    # GEMINI API ERRORS
     # --------------------------------
 
-    # Make a separate copy BEFORE MongoDB adds its _id
-    record_to_save = result.copy()
+    except errors.ClientError as e:
 
-    inserted = waste_records.insert_one(record_to_save)
+        print("Gemini API error:", e)
+
+        if e.code == 429:
+            return jsonify({
+                "error": "AI service is temporarily unavailable. Please try again later."
+            }), 429
+
+        return jsonify({
+            "error": "The AI service could not process your image."
+        }), 502
 
     # --------------------------------
-    # RESPONSE TO FRONTEND
+    # OTHER SERVER ERRORS
     # --------------------------------
 
-    # Keep MongoDB's ObjectId out of the response
-    response_data = result.copy()
+    except Exception as e:
 
-    # Give frontend the ID as a normal string
-    response_data["id"] = str(inserted.inserted_id)
+        print("Server error:", e)
 
-    return jsonify(response_data)
-# --------------------------------
-# RUN SERVER
-# --------------------------------
+        return jsonify({
+            "error": "Something went wrong on the server."
+        }), 500
 
+    # --------------------------------
+    # DELETE TEMP IMAGE
+    # --------------------------------
+
+    finally:
+
+        if os.path.exists(image_path):
+            os.remove(image_path)
 if __name__ == "__main__":
     app.run(debug=True)
