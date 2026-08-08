@@ -377,12 +377,10 @@ function Home() {
           </span>
         </Link>
 
-        <a href="#rewards">
-          🏆
-          <span>
-            Rewards
-          </span>
-        </a>
+        <Link to="/rewards">
+         🏆
+         <span>Rewards</span>
+        </Link>
 
         <a href="#market">
           🛍

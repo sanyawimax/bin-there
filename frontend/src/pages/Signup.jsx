@@ -39,10 +39,8 @@ function Signup() {
         return;
       }
 
-      // Signup successful
       alert("Account created successfully!");
 
-      // Go to login
       navigate("/login");
 
     } catch (error) {
@@ -54,66 +52,68 @@ function Signup() {
   };
 
   return (
-    <div className="login-page">
+    <div className="auth-page">
+      <div className="auth-card">
 
-      <h1>Create your account</h1>
+        <h1>Create your account</h1>
 
-      <p>
-        Join BinThere and start making your waste count.
-      </p>
+        <p>
+          Join BinThere and start making your waste count.
+        </p>
 
-      <form onSubmit={handleSignup}>
+        <form onSubmit={handleSignup}>
 
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+          <input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        <input
-          type="text"
-          placeholder="Building (optional)"
-          value={building}
-          onChange={(e) => setBuilding(e.target.value)}
-        />
+          <input
+            type="text"
+            placeholder="Building (optional)"
+            value={building}
+            onChange={(e) => setBuilding(e.target.value)}
+          />
 
-        {error && (
-          <p className="error-message">
-            {error}
-          </p>
-        )}
+          {error && (
+            <p className="error-message">
+              {error}
+            </p>
+          )}
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating account..." : "Sign Up"}
-        </button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Creating account..." : "Sign Up"}
+          </button>
 
-      </form>
+        </form>
 
-      <p>
-        Already have an account?{" "}
-        <Link to="/login">
-          Log in
-        </Link>
-      </p>
+        <p>
+          Already have an account?{" "}
+          <Link to="/login">
+            Log in
+          </Link>
+        </p>
 
+      </div>
     </div>
   );
 }

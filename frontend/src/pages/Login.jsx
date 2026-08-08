@@ -36,10 +36,8 @@ function Login() {
         return;
       }
 
-      // Save logged-in user information
       localStorage.setItem("user", JSON.stringify(data));
 
-      // Go to Home after successful login
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -50,49 +48,53 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
+    <div className="auth-page">
+      <div className="auth-card">
 
-      <h1>Welcome back</h1>
+        <h1>Welcome back</h1>
 
-      <p>Log in to your BinThere account.</p>
+        <p>
+          Log in to your BinThere account.
+        </p>
 
-      <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin}>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        {error && (
-          <p className="error-message">
-            {error}
-          </p>
-        )}
+          {error && (
+            <p className="error-message">
+              {error}
+            </p>
+          )}
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Log In"}
-        </button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Log In"}
+          </button>
 
-      </form>
+        </form>
 
-      <p>
-        Don't have an account?{" "}
-        <Link to="/signup">
-          Sign up
-        </Link>
-      </p>
+        <p>
+          Don't have an account?{" "}
+          <Link to="/signup">
+            Sign up
+          </Link>
+        </p>
 
+      </div>
     </div>
   );
 }
