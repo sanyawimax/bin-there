@@ -866,4 +866,18 @@
   .rewards-heading h2 {
     font-size: 34px;
   }
+
+.success-message {
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: #eaf5ed;
+  color: #28734b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rewards-points p {
+  margin-bottom: 5px;
+}
 }

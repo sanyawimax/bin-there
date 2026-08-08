@@ -5,8 +5,19 @@ function Rewards() {
   const [rewards, setRewards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [points, setPoints] = useState(0);
+  const [redeeming, setRedeeming] = useState(null);
 
   useEffect(() => {
+    const storedUser = JSON.parse(
+      localStorage.getItem("user")
+    );
+
+    if (storedUser) {
+      setPoints(storedUser.points || 0);
+    }
+
     const fetchRewards = async () => {
       try {
         const response = await fetch(
@@ -32,6 +43,78 @@ function Rewards() {
 
     fetchRewards();
   }, []);
+
+  const handleRedeem = async (reward) => {
+    setError("");
+    setMessage("");
+
+    const storedUser = JSON.parse(
+      localStorage.getItem("user")
+    );
+
+    if (!storedUser || !storedUser.user_id) {
+      setError("Please log in before redeeming a reward.");
+      return;
+    }
+
+    if (points < reward.points_required) {
+      setError(
+        `You need ${reward.points_required} points to redeem this reward.`
+      );
+      return;
+    }
+
+    setRedeeming(reward.id);
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5000/redeem",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: storedUser.user_id,
+            reward_id: reward.id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("REDEEM RESPONSE:", data);
+
+      if (!response.ok) {
+        setError(data.error || "Could not redeem reward.");
+        return;
+      }
+
+      // Update points on the page
+      setPoints(data.remaining_points);
+
+      // Update localStorage
+      const updatedUser = {
+        ...storedUser,
+        points: data.remaining_points,
+      };
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(updatedUser)
+      );
+
+      setMessage(
+        `🎉 ${data.reward} redeemed successfully!`
+      );
+
+    } catch (error) {
+      console.error("Redeem error:", error);
+      setError("Could not connect to the server.");
+    } finally {
+      setRedeeming(null);
+    }
+  };
 
   return (
     <div className="rewards-page">
@@ -73,6 +156,28 @@ function Rewards() {
           </p>
 
         </section>
+
+
+        {/* Current points */}
+
+        <div className="rewards-points">
+
+          <p>Your current points</p>
+
+          <strong>
+            ⭐ {points} Points
+          </strong>
+
+        </div>
+
+
+        {/* Success message */}
+
+        {message && (
+          <div className="success-message">
+            {message}
+          </div>
+        )}
 
 
         {/* Error */}
@@ -124,8 +229,14 @@ function Rewards() {
                 </div>
 
 
-                <button className="reward-button">
-                  Redeem
+                <button
+                  className="reward-button"
+                  onClick={() => handleRedeem(reward)}
+                  disabled={redeeming === reward.id}
+                >
+                  {redeeming === reward.id
+                    ? "Redeeming..."
+                    : "Redeem"}
                 </button>
 
               </div>
