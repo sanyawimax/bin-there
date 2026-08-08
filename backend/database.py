@@ -14,6 +14,6 @@ users = db["user"]
 waste_records = db["waste_records"]
 rewards = db["rewards"]
 redemptions = db["redemptions"]
-
+pickups = db["pickups"]
 
 print("Database connected successfully!")

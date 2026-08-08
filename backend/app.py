@@ -9,7 +9,8 @@ from backend.database import (
     users,
     waste_records,
     rewards,
-    redemptions
+    redemptions,
+    pickups
 )
 
 from ai.classifier import classify_waste
@@ -396,6 +397,125 @@ def redeem_reward():
         "points_spent": required_points,
         "remaining_points": user_points - required_points
     }), 200
+
+
+# --------------------------------
+# GET PICKUP INFO
+# --------------------------------
+
+@app.route("/municipal/pickups", methods=["GET"])
+def get_pickups():
+
+    pickup_list = pickups.find(
+        {},
+        {
+            "building": 1,
+            "area": 1,
+            "fill_level": 1,
+            "status": 1,
+            "vehicle_id": 1,
+            "priority": 1
+        }
+    )
+
+    result = []
+
+    for pickup in pickup_list:
+        result.append({
+            "id": str(pickup["_id"]),
+            "building": pickup.get("building"),
+            "area": pickup.get("area"),
+            "fill_level": pickup.get("fill_level", 0),
+            "status": pickup.get("status"),
+            "vehicle_id": pickup.get("vehicle_id"),
+            "priority": pickup.get("priority")
+        })
+
+    return jsonify(result)
+
+
+# --------------------------------
+# MUNICIPAL DASHBOARD STATS
+# --------------------------------
+@app.route("/municipal/stats", methods=["GET"])
+def get_municipal_stats():
+
+    total_users = users.count_documents({})
+
+    total_waste_records = waste_records.count_documents({})
+
+    recycled_result = list(
+        users.aggregate([
+            {
+                "$group": {
+                    "_id": None,
+                    "total": {
+                        "$sum": {
+                            "$ifNull": ["$total_recycled_kg", 0]
+                        }
+                    },
+                    "points": {
+                        "$sum": {
+                            "$ifNull": ["$points", 0]
+                        }
+                    }
+                }
+            }
+        ])
+    )
+
+    total_recycled_kg = 0
+    total_points = 0
+
+    if recycled_result:
+        total_recycled_kg = recycled_result[0].get("total", 0)
+        total_points = recycled_result[0].get("points", 0)
+
+    buildings = users.distinct("building")
+
+    # Prototype estimate.
+    # This is an estimated impact metric, not a scientific measurement.
+    estimated_co2_saved = round(total_recycled_kg * 1.5, 2)
+
+    return jsonify({
+        "total_users": total_users,
+        "total_waste_records": total_waste_records,
+        "total_recycled_kg": round(total_recycled_kg, 2),
+        "total_points_distributed": total_points,
+        "participating_buildings": len(buildings),
+        "estimated_co2_saved_kg": estimated_co2_saved
+    })
+
+
+# --------------------------------
+# OPTIMUM ROUTE (HIGHEST PRIORITY ALGORITHM)
+# --------------------------------
+@app.route("/municipal/route", methods=["GET"])
+def get_collection_route():
+
+    pickup_list = pickups.find(
+        {},
+        {
+            "building": 1,
+            "area": 1,
+            "fill_level": 1,
+            "priority": 1
+        }
+    ).sort("fill_level", -1)
+
+    route = []
+
+    for position, pickup in enumerate(pickup_list, start=1):
+        route.append({
+            "stop": position,
+            "building": pickup.get("building"),
+            "area": pickup.get("area"),
+            "fill_level": pickup.get("fill_level", 0),
+            "priority": pickup.get("priority")
+        })
+
+    return jsonify(route)
+
 
 # --------------------------------
 # RUN SERVER

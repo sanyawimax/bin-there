@@ -103,3 +103,24 @@ response = requests.post(
 print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
+
+print("\nTesting GET /municipal/pickups...")
+
+response = requests.get(
+    "http://127.0.0.1:5000/municipal/pickups"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+print("\nTesting GET /municipal/stats...")
+
+response = requests.get(
+    "http://127.0.0.1:5000/municipal/stats"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
