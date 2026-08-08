@@ -20,6 +20,24 @@ print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
 
+
+print("\n========== TEST SIGNUP ==========")
+
+signup_data = {
+    "name": "Test User",
+    "email": "testuser123@example.com",
+    "password": "test1234",
+    "building": "Building A"
+}
+
+response = requests.post(
+    "http://127.0.0.1:5000/signup",
+    json=signup_data
+)
+
+print("Status code:", response.status_code)
+print("Response:", response.json())
+
 # -------------------------
 # Test /user
 # -------------------------
@@ -51,3 +69,76 @@ response = requests.get(
 print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
+
+# -------------------------
+# Test /leaderboard
+# -------------------------
+
+print("\nTesting GET /leaderboard...")
+
+response = requests.get(
+    "http://127.0.0.1:5000/leaderboard"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+# -------------------------
+# Test /building-leaderboard
+# -------------------------
+
+print("\nTesting GET /building-leaderboard...")
+
+response = requests.get(
+    "http://127.0.0.1:5000/building-leaderboard"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+
+# -------------------------
+# Test /redeem
+# -------------------------
+
+print("\nTesting POST /redeem...")
+
+user_id = "66b4c103a1b2c3d4e5f67892"
+reward_id = "6a773298221d5d0abe2c8c66"
+
+data = {
+    "user_id": user_id,
+    "reward_id": reward_id
+}
+
+response = requests.post(
+    "http://127.0.0.1:5000/redeem",
+    json=data
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+print("\nTesting GET /municipal/pickups...")
+
+response = requests.get(
+    "http://127.0.0.1:5000/municipal/pickups"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+print("\nTesting GET /municipal/stats...")
+
+response = requests.get(
+    "http://127.0.0.1:5000/municipal/stats"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+

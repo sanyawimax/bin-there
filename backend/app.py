@@ -1,3 +1,4 @@
+```python
 import os
 import sys
 from datetime import datetime
@@ -8,10 +9,12 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from google.genai import errors
 
-# Allow imports from project root
+# Allow imports from the project root
 sys.path.append(
     os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__))
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
     )
 )
 
@@ -25,6 +28,13 @@ from ai.classifier import classify_waste
 
 app = Flask(__name__)
 CORS(app)
+
+
+# --------------------------------
+# ENVIRONMENT
+# --------------------------------
+
+load_dotenv()
 
 
 # --------------------------------
@@ -45,7 +55,7 @@ POINTS = {
 
 
 # --------------------------------
-# ESTIMATED WEIGHT
+# ESTIMATED WASTE WEIGHT
 # --------------------------------
 
 ESTIMATED_WEIGHT_KG = {
@@ -54,11 +64,7 @@ ESTIMATED_WEIGHT_KG = {
     "glass": 0.30,
     "metal": 0.15,
     "e-waste": 0.20,
-    "wet/organic": 0.10,
-    "organic": 0.10,
-    "hazardous": 0.10,
-    "textile": 0.10,
-    "other": 0
+    "organic": 0.10
 }
 
 
@@ -106,7 +112,7 @@ def classify():
             }), 400
 
         # --------------------------------
-        # CHECK USER
+        # CHECK USER EXISTS
         # --------------------------------
 
         user = users.find_one({
@@ -163,6 +169,10 @@ def classify():
 
         points = POINTS[category]
 
+        # --------------------------------
+        # ESTIMATED WEIGHT
+        # --------------------------------
+
         estimated_weight = ESTIMATED_WEIGHT_KG.get(
             category.lower(),
             0
@@ -173,14 +183,11 @@ def classify():
         # --------------------------------
 
         result["points"] = points
+
         result["estimated_weight_kg"] = estimated_weight
 
-        # Keep datetime object in MongoDB
-        timestamp = datetime.now()
+        result["timestamp"] = datetime.now()
 
-        result["timestamp"] = timestamp
-
-        # Link waste record to user
         result["user_id"] = user_object_id
 
         # --------------------------------
@@ -188,7 +195,9 @@ def classify():
         # --------------------------------
 
         users.update_one(
-            {"_id": user_object_id},
+            {
+                "_id": user_object_id
+            },
             {
                 "$inc": {
                     "points": points,
@@ -208,7 +217,7 @@ def classify():
         )
 
         # --------------------------------
-        # RESPONSE TO FRONTEND
+        # PREPARE RESPONSE
         # --------------------------------
 
         response_data = result.copy()
@@ -221,8 +230,10 @@ def classify():
             inserted.inserted_id
         )
 
-        # Convert datetime for JSON
-        response_data["timestamp"] = timestamp.isoformat()
+        # datetime is not JSON serializable
+        response_data["timestamp"] = (
+            result["timestamp"].isoformat()
+        )
 
         return jsonify(response_data), 200
 
@@ -245,7 +256,8 @@ def classify():
 
         return jsonify({
             "error": (
-                "The AI service could not process your image."
+                "The AI service could not process "
+                "your image."
             )
         }), 502
 
@@ -270,7 +282,15 @@ def classify():
     finally:
 
         if os.path.exists(image_path):
-            os.remove(image_path)
+
+            try:
+                os.remove(image_path)
+
+            except Exception as e:
+                print(
+                    "Could not delete temporary image:",
+                    e
+                )
 
 
 # --------------------------------
@@ -280,28 +300,44 @@ def classify():
 @app.route("/user/<user_id>", methods=["GET"])
 def get_user(user_id):
 
+    # Convert ID
     try:
+
         user_object_id = ObjectId(user_id)
 
     except Exception:
+
         return jsonify({
             "error": "Invalid user ID"
         }), 400
 
+    # Find user
     user = users.find_one({
         "_id": user_object_id
     })
 
     if not user:
+
         return jsonify({
             "error": "User not found"
         }), 404
 
+    # Return user information
     return jsonify({
+
         "name": user.get("name"),
+
         "email": user.get("email"),
-        "points": user.get("points", 0),
-        "building": user.get("building"),
+
+        "points": user.get(
+            "points",
+            0
+        ),
+
+        "building": user.get(
+            "building"
+        ),
+
         "total_recycled_kg": user.get(
             "total_recycled_kg",
             0
@@ -316,25 +352,33 @@ def get_user(user_id):
 @app.route("/history/<user_id>", methods=["GET"])
 def get_history(user_id):
 
+    # Convert ID
     try:
+
         user_object_id = ObjectId(user_id)
 
     except Exception:
+
         return jsonify({
             "error": "Invalid user ID"
         }), 400
 
+    # Check user
     user = users.find_one({
         "_id": user_object_id
     })
 
     if not user:
+
         return jsonify({
             "error": "User not found"
         }), 404
 
+    # Find user's waste records
     records = waste_records.find(
-        {"user_id": user_object_id}
+        {
+            "user_id": user_object_id
+        }
     ).sort(
         "timestamp",
         -1
@@ -344,16 +388,30 @@ def get_history(user_id):
 
     for record in records:
 
-        timestamp = record.get("timestamp")
+        timestamp = record.get(
+            "timestamp"
+        )
 
         history.append({
-            "category": record.get("category"),
-            "object": record.get("object"),
-            "points": record.get("points", 0),
+
+            "category": record.get(
+                "category"
+            ),
+
+            "object": record.get(
+                "object"
+            ),
+
+            "points": record.get(
+                "points",
+                0
+            ),
+
             "estimated_weight_kg": record.get(
                 "estimated_weight_kg",
                 0
             ),
+
             "timestamp": (
                 timestamp.isoformat()
                 if timestamp
@@ -370,3 +428,4 @@ def get_history(user_id):
 
 if __name__ == "__main__":
     app.run(debug=True)
+```
