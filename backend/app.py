@@ -5,7 +5,12 @@ from bson import ObjectId
 from flask import Flask, request, jsonify
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
-from database import users, waste_records
+from backend.database import (
+    users,
+    waste_records,
+    rewards,
+    redemptions
+)
 
 from ai.classifier import classify_waste
 
@@ -134,7 +139,10 @@ def classify():
 
     return jsonify(response_data)
 
-# Get user profile
+# --------------------------------
+# GET USER PROFILE
+# --------------------------------
+
 
 @app.route("/user/<user_id>", methods=["GET"])
 def get_user(user_id):
@@ -161,6 +169,11 @@ def get_user(user_id):
         "building": user.get("building"),
         "total_recycled_kg": user.get("total_recycled_kg", 0)
     })
+
+# --------------------------------
+# GET USER-WISE HISTORY
+# --------------------------------
+
 
 @app.route("/history/<user_id>", methods=["GET"])
 def get_history(user_id):
@@ -198,6 +211,192 @@ def get_history(user_id):
         })
 
     return jsonify(history)
+
+# --------------------------------
+# GET INDIVIDUAL LEADERBOARD
+# --------------------------------
+
+
+@app.route("/leaderboard", methods=["GET"])
+def get_leaderboard():
+
+    users_list = users.find(
+        {},
+        {
+            "name": 1,
+            "points": 1,
+            "building": 1
+        }
+    ).sort("points", -1)
+
+    leaderboard = []
+
+    for rank, user in enumerate(users_list, start=1):
+        leaderboard.append({
+            "rank": rank,
+            "name": user.get("name"),
+            "points": user.get("points", 0),
+            "building": user.get("building")
+    })
+
+    return jsonify(leaderboard)
+
+# --------------------------------
+# GET BUILDING WISE LEADERBOARD
+# --------------------------------
+@app.route("/building-leaderboard", methods=["GET"])
+def get_building_leaderboard():
+
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$building",
+                "total_points": {
+                    "$sum": "$points"
+                },
+                "total_recycled_kg": {
+                    "$sum": "$total_recycled_kg"
+                },
+                "members": {
+                    "$sum": 1
+                }
+            }
+        },
+        {
+            "$sort": {
+                "total_points": -1
+            }
+        }
+    ]
+
+    buildings = users.aggregate(pipeline)
+
+    leaderboard = []
+
+    for building in buildings:
+        leaderboard.append({
+            "building": building["_id"],
+            "total_points": building.get("total_points", 0),
+            "total_recycled_kg": building.get("total_recycled_kg", 0),
+            "members": building.get("members", 0)
+        })
+
+    return jsonify(leaderboard)
+
+# --------------------------------
+# REWARDS SYSTEM
+# --------------------------------
+
+@app.route("/rewards", methods=["GET"])
+def get_rewards():
+
+    reward_list = rewards.find(
+        {"available": True},
+        {
+            "name": 1,
+            "description": 1,
+            "points_required": 1,
+            "partner": 1
+        }
+    )
+
+    result = []
+
+    for reward in reward_list:
+        result.append({
+            "id": str(reward["_id"]),
+            "name": reward.get("name"),
+            "description": reward.get("description"),
+            "points_required": reward.get("points_required", 0),
+            "partner": reward.get("partner")
+        })
+
+    return jsonify(result)
+
+
+# --------------------------------
+# REDEEM REWARDS
+# --------------------------------
+@app.route("/redeem", methods=["POST"])
+def redeem_reward():
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "Request body is required"}), 400
+
+    user_id = data.get("user_id")
+    reward_id = data.get("reward_id")
+
+    if not user_id or not reward_id:
+        return jsonify({
+            "error": "user_id and reward_id are required"
+        }), 400
+
+    # Convert IDs to ObjectId
+    try:
+        user_object_id = ObjectId(user_id)
+        reward_object_id = ObjectId(reward_id)
+    except Exception:
+        return jsonify({"error": "Invalid user ID or reward ID"}), 400
+
+    # Find user
+    user = users.find_one({
+        "_id": user_object_id
+    })
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Find reward
+    reward = rewards.find_one({
+        "_id": reward_object_id,
+        "available": True
+    })
+
+    if not reward:
+        return jsonify({"error": "Reward not found"}), 404
+
+    user_points = user.get("points", 0)
+    required_points = reward.get("points_required", 0)
+
+    # Check points
+    if user_points < required_points:
+        return jsonify({
+            "error": "Insufficient points",
+            "your_points": user_points,
+            "required_points": required_points
+        }), 400
+
+    # Deduct points
+    users.update_one(
+        {"_id": user_object_id},
+        {
+            "$inc": {
+                "points": -required_points
+            }
+        }
+    )
+
+    # Create redemption record
+    redemption = {
+        "user_id": user_object_id,
+        "reward_id": reward_object_id,
+        "reward_name": reward.get("name"),
+        "points_spent": required_points,
+        "status": "successful",
+        "timestamp": datetime.now()
+    }
+
+    redemptions.insert_one(redemption)
+
+    return jsonify({
+        "message": "Reward redeemed successfully!",
+        "reward": reward.get("name"),
+        "points_spent": required_points,
+        "remaining_points": user_points - required_points
+    }), 200
+
 # --------------------------------
 # RUN SERVER
 # --------------------------------
