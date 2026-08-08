@@ -1,9 +1,11 @@
 import os
+import sys
 from datetime import datetime
-
+from bson import ObjectId
 from flask import Flask, request, jsonify
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
-from pymongo import MongoClient
+from database import users, waste_records
 
 from ai.classifier import classify_waste
 
@@ -15,19 +17,9 @@ from ai.classifier import classify_waste
 app = Flask(__name__)
 
 
-# --------------------------------
-# MONGODB
-# --------------------------------
 
-load_dotenv()
 
-mongo_uri = os.getenv("MONGO_URI")
 
-client = MongoClient(mongo_uri)
-
-db = client["binthere"]
-
-waste_records = db["waste_records"]
 
 
 # --------------------------------
@@ -63,43 +55,61 @@ def home():
 @app.route("/classify", methods=["POST"])
 def classify():
 
-    # Get uploaded image
+    # Get user ID
+    user_id = request.form.get("user_id")
+
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    # Convert string ID to MongoDB ObjectId
+    try:
+        user_object_id = ObjectId(user_id)
+    except Exception:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    # Find user
+    user = users.find_one({"_id": user_object_id})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Get image
     image = request.files["image"]
 
-    # Save temporarily
     image_path = "temp_image.jpg"
     image.save(image_path)
 
     # Gemini classification
     result = classify_waste(image_path)
 
-    # Get category
     category = result["category"]
 
     # Calculate points
     points = POINTS.get(category, 0)
 
-    # Add points and timestamp
     result["points"] = points
     result["timestamp"] = datetime.now()
 
-    # --------------------------------
-    # SAVE A COPY TO MONGODB
-    # --------------------------------
+    # Link record to user
+    result["user_id"] = user_object_id
 
-    # Make a separate copy BEFORE MongoDB adds its _id
+    # Update user's points
+    users.update_one(
+        {"_id": user_object_id},
+        {"$inc": {"points": points}}
+    )
+
+    # Save waste record
     record_to_save = result.copy()
 
     inserted = waste_records.insert_one(record_to_save)
 
-    # --------------------------------
-    # RESPONSE TO FRONTEND
-    # --------------------------------
-
-    # Keep MongoDB's ObjectId out of the response
+    # Prepare response
     response_data = result.copy()
 
-    # Give frontend the ID as a normal string
+    # ObjectId isn't JSON serializable,
+    # so convert it only for the response
+    response_data["user_id"] = str(user_object_id)
     response_data["id"] = str(inserted.inserted_id)
 
     return jsonify(response_data)
