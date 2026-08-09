@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/PageFooter";
-
-const API = "http://127.0.0.1:5000";
+const API_URL = import.meta.env.VITE_API_URL;
+const API = `${API_URL}`;
 
 function MunicipalDashboard() {
 

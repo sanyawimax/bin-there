@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import PageFooter from "../components/PageFooter";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Home() {
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
@@ -19,7 +19,7 @@ function Home() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/user/${storedUser.user_id}`
+          `${API_URL}/user/${storedUser.user_id}`
         );
 
         if (!response.ok) {
@@ -58,7 +58,7 @@ function Home() {
     const fetchLeaderboard = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:5000/leaderboard"
+          `${API_URL}/leaderboard`
         );
 
         const data = await response.json();
@@ -79,7 +79,7 @@ function Home() {
     const fetchHistory = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/history/${storedUser.user_id}`
+          `${API_URL}/history/${storedUser.user_id}`
         );
 
         if (!response.ok) {

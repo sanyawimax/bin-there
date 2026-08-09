@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import PageFooter from "../components/PageFooter";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Leaderboard() {
 
   const [tab, setTab] = useState("people");
@@ -21,8 +21,8 @@ function Leaderboard() {
 
         const [peopleResponse, buildingResponse] =
           await Promise.all([
-            fetch("http://127.0.0.1:5000/leaderboard"),
-            fetch("http://127.0.0.1:5000/building-leaderboard")
+            fetch(`${API_URL}/leaderboard`),
+            fetch(`${API_URL}/building-leaderboard`)
           ]);
 
         const peopleData = await peopleResponse.json();

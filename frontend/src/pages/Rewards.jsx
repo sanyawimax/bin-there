@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import PageFooter from "../components/PageFooter";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Rewards() {
   const [rewards, setRewards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ function Rewards() {
     const fetchRewards = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:5000/rewards"
+          `${API_URL}/rewards`
         );
 
         if (!response.ok) {
@@ -70,7 +70,7 @@ function Rewards() {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:5000/redeem",
+        `${API_URL}/redeem`,
         {
           method: "POST",
           headers: {

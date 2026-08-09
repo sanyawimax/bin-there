@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import PageFooter from "../components/PageFooter";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function History() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ function History() {
     const fetchHistory = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/history/${user.user_id}`
+          `${API_URL}/history/${user.user_id}`
         );
 
         const data = await response.json();

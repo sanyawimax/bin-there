@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import PageFooter from "../components/PageFooter";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Scan() {
   const [image, setImage] = useState(null);
   const [file, setFile] = useState(null);
@@ -39,7 +39,7 @@ function Scan() {
       formData.append("user_id", user.user_id);
 
       const response = await fetch(
-        "http://127.0.0.1:5000/classify",
+        `${API_URL}/classify`,
         {
           method: "POST",
           body: formData,
