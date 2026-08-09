@@ -17,6 +17,7 @@ import Rewards from "./pages/Rewards";
 import History from "./pages/History";
 import Leaderboard from "./pages/Leaderboard";
 import MunicipalDashboard from "./pages/MunicipalDashboard";
+import BottomNav from "./components/BottomNav";
 
 
 function App() {

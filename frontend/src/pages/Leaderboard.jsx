@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
 
 function Leaderboard() {
 
@@ -124,56 +126,163 @@ function Leaderboard() {
           <p>Loading leaderboard...</p>
         )}
 
-        {error && (
-          <div className="scan-error">
-            ⚠️ {error}
-          </div>
-        )}
+                            {error && (
+                            <div className="scan-error">
+                                ⚠️ {error}
+                            </div>
+                            )}
 
-        {!loading && !error && tab === "people" && (
+                            {!loading && !error && tab === "people" && (
 
-          <section>
+                    <section>
 
-            {people.map((person) => (
+                        {/* TOP THREE */}
 
-              <div
-                className="activity-item"
-                key={person.rank}
-              >
+                        {people.length >= 3 && (
 
-                <span>
-                  {person.rank === 1
-                    ? "🥇"
-                    : person.rank === 2
-                    ? "🥈"
-                    : person.rank === 3
-                    ? "🥉"
-                    : `#${person.rank}`}
-                </span>
+                        <div className="leaderboard-podium">
 
-                <div>
+                            {/* SECOND */}
 
-                  <strong>
-                    {person.name}
-                  </strong>
+                            <div className="podium-card second">
 
-                  <p>
-                    {person.building || "No building"}
-                  </p>
+                            <div className="podium-medal">
+                                🥈
+                            </div>
 
-                </div>
+                            <div className="podium-avatar">
+                                {people[1].name?.charAt(0).toUpperCase()}
+                            </div>
 
-                <b>
-                  {person.points} pts
-                </b>
+                            <strong>
+                                {people[1].name}
+                            </strong>
 
-              </div>
+                            <span>
+                                {people[1].points} pts
+                            </span>
 
-            ))}
+                            <small>
+                                {people[1].building || "Community"}
+                            </small>
 
-          </section>
+                            <div className="podium-base">
+                                2
+                            </div>
 
-        )}
+                            </div>
+
+
+                            {/* FIRST */}
+
+                            <div className="podium-card first">
+
+                            <div className="podium-medal">
+                                🥇
+                            </div>
+
+                            <div className="podium-avatar">
+                                {people[0].name?.charAt(0).toUpperCase()}
+                            </div>
+
+                            <strong>
+                                {people[0].name}
+                            </strong>
+
+                            <span>
+                                {people[0].points} pts
+                            </span>
+
+                            <small>
+                                {people[0].building || "Community"}
+                            </small>
+
+                            <div className="podium-base">
+                                1
+                            </div>
+
+                            </div>
+
+
+                            {/* THIRD */}
+
+                            <div className="podium-card third">
+
+                            <div className="podium-medal">
+                                🥉
+                            </div>
+
+                            <div className="podium-avatar">
+                                {people[2].name?.charAt(0).toUpperCase()}
+                            </div>
+
+                            <strong>
+                                {people[2].name}
+                            </strong>
+
+                            <span>
+                                {people[2].points} pts
+                            </span>
+
+                            <small>
+                                {people[2].building || "Community"}
+                            </small>
+
+                            <div className="podium-base">
+                                3
+                            </div>
+
+                            </div>
+
+                        </div>
+
+                        )}
+
+
+                        {/* EVERYONE ELSE */}
+
+                        <div className="leaderboard-list">
+
+                        {people.slice(3).map((person) => (
+
+                            <div
+                            className="leaderboard-row"
+                            key={person.rank}
+                            >
+
+                            <span className="leaderboard-rank">
+                                #{person.rank}
+                            </span>
+
+                            <div className="leaderboard-avatar">
+                                {person.name?.charAt(0).toUpperCase()}
+                            </div>
+
+                            <div className="leaderboard-person">
+
+                                <strong>
+                                {person.name}
+                                </strong>
+
+                                <p>
+                                {person.building || "No building"}
+                                </p>
+
+                            </div>
+
+                            <b>
+                                {person.points} pts
+                            </b>
+
+                            </div>
+
+                        ))}
+
+                        </div>
+
+                    </section>
+
+                    )}
 
         {!loading && !error && tab === "buildings" && (
 
@@ -215,7 +324,8 @@ function Leaderboard() {
         )}
 
       </main>
-
+    <BottomNav />
+    <PageFooter />
     </div>
   );
 }

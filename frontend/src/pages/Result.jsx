@@ -1,4 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
 
 function Result() {
   const location = useLocation();
@@ -248,6 +250,8 @@ function Result() {
 
       </main>
 
+      <BottomNav />
+      <PageFooter />
     </div>
   );
 }

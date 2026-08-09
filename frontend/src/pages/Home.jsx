@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
 
 function Home() {
   const [user, setUser] = useState(null);
@@ -412,38 +414,8 @@ function Home() {
       </main>
 
 
-      <nav className="bottom-nav">
-
-        <Link to="/">
-          ⌂
-          <span>
-            Home
-          </span>
-        </Link>
-
-        <Link to="/scan">
-          📷
-          <span>
-            Scan
-          </span>
-        </Link>
-
-        <Link to="/rewards">
-         🏆
-         <span>Rewards</span>
-        </Link>
-
-        <Link to="/leaderboard">
-          🏆
-          <span>
-            Leaderboard
-          </span>
-        </Link>
-
-        
-
-      </nav>
-
+      <BottomNav />
+      <PageFooter />
     </div>
   );
 }

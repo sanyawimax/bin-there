@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
 
 function Scan() {
   const [image, setImage] = useState(null);
@@ -107,15 +109,33 @@ function Scan() {
 
           {image ? (
             <>
-              <img
-                src={image}
-                alt="Selected waste"
-                className="preview-image"
-              />
+              <div className="scan-preview">
 
-              <p className="image-selected">
-                Image ready for identification ✓
-              </p>
+                <img
+                  src={image}
+                  alt="Selected waste"
+                  className="preview-image"
+                />
+
+                {loading && (
+                  <>
+                    <div className="scan-overlay"></div>
+                    <div className="scan-line"></div>
+
+                    <div className="scan-status">
+                      <span>✦</span>
+                      Analyzing your waste...
+                    </div>
+                  </>
+                )}
+
+    </div>
+
+    {!loading && (
+      <p className="image-selected">
+        Image ready for identification ✓
+      </p>
+    )}
 
               <label className="upload-button">
                 Change Image
@@ -162,27 +182,7 @@ function Scan() {
         </div>
 
 
-        <div className="language-box">
-
-          <div>
-            <strong>
-              🌐 Language
-            </strong>
-
-            <p>
-              Choose your preferred language
-            </p>
-          </div>
-
-          <select>
-            <option>English</option>
-            <option>বাংলা</option>
-            <option>हिन्दी</option>
-          </select>
-
-        </div>
-
-
+        
         {error && (
           <div className="scan-error">
             ⚠️ {error}
@@ -201,6 +201,9 @@ function Scan() {
         </button>
 
       </main>
+
+      <BottomNav />
+      <PageFooter />
 
     </div>
   );

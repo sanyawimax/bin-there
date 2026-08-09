@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
 
 function Rewards() {
   const [rewards, setRewards] = useState([]);
@@ -249,32 +251,9 @@ function Rewards() {
       </main>
 
 
-      {/* Bottom navigation */}
+      <BottomNav />
 
-      <nav className="bottom-nav">
-
-        <Link to="/">
-          ⌂
-          <span>Home</span>
-        </Link>
-
-        <Link to="/scan">
-          📷
-          <span>Scan</span>
-        </Link>
-
-        <Link to="/rewards">
-          🏆
-          <span>Rewards</span>
-        </Link>
-
-        <a href="#market">
-          🛍
-          <span>Market</span>
-        </a>
-
-      </nav>
-
+     <PageFooter />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -157,7 +159,9 @@ function History() {
         ))}
 
       </main>
-
+        
+     <BottomNav />
+    <PageFooter />
     </div>
   );
 }
