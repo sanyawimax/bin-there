@@ -881,3 +881,136 @@
   margin-bottom: 5px;
 }
 }
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.leaderboard-tabs button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.leaderboard-tabs .active-tab {
+  font-weight: 700;
+}
+
+.municipal-section {
+    margin-top: 32px;
+    margin-bottom: 100px;
+}
+
+.municipal-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 18px;
+
+    border-radius: 18px;
+
+    text-decoration: none;
+    color: inherit;
+
+    background: #f3f7f2;
+}
+
+.municipal-icon {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background: white;
+    font-size: 22px;
+}
+
+.municipal-info {
+    flex: 1;
+}
+
+.municipal-info strong {
+    display: block;
+}
+
+.municipal-info p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    opacity: 0.65;
+}
+
+.municipal-arrow {
+    font-size: 22px;
+}
+
+/* ============================= */
+/* GOOGLE TRANSLATE              */
+/* ============================= */
+
+.google-translate-wrapper {
+    position: fixed !important;
+
+    top: 16px !important;
+    right: 200px !important;
+
+    left: auto !important;
+    transform: none !important;
+
+    z-index: 99999 !important;
+
+    background: white;
+    border-radius: 10px;
+    padding: 4px 8px;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.goog-te-gadget {
+  font-family: inherit !important;
+  font-size: 0 !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+  margin: 0 !important;
+
+  padding: 6px 8px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.goog-te-gadget .goog-te-combo:focus {
+  outline: none;
+}
+
+/* Hide Google's branding text */
+
+.goog-te-gadget span {
+  display: none;
+}
+
+/* Prevent Google's top translation bar from pushing the page down */
+
+body {
+  top: 0 !important;
+}
+
+.goog-te-banner-frame {
+  display: none !important;
+}

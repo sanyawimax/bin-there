@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 function Home() {
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
-
+  const [rank, setRank] = useState(null);
   useEffect(() => {
     const storedUser = JSON.parse(
       localStorage.getItem("user")
@@ -53,7 +53,27 @@ function Home() {
       }
     };
 
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:5000/leaderboard"
+        );
 
+        const data = await response.json();
+
+        const myRank = data.find(
+          (person) =>
+            person.name === storedUser.name
+        );
+
+        if (myRank) {
+          setRank(myRank.rank);
+        }
+
+      } catch (error) {
+        console.error("Could not fetch rank:", error);
+      }
+    };
     const fetchHistory = async () => {
       try {
         const response = await fetch(
@@ -83,7 +103,7 @@ function Home() {
 
     fetchUser();
     fetchHistory();
-
+    fetchLeaderboard();
   }, []);
 
 
@@ -160,9 +180,9 @@ function Home() {
       <header className="top-bar">
         <h1>BinThere</h1>
 
-        <button className="profile-button">
+        <Link to="/login" className="profile-button">
           👤
-        </button>
+        </Link>
       </header>
 
 
@@ -262,7 +282,7 @@ function Home() {
             </span>
 
             <strong>
-              —
+              {rank ? `#${rank}` : "—"}
             </strong>
 
             <p>
@@ -282,9 +302,9 @@ function Home() {
               Recent activity
             </h3>
 
-            <button>
+            <Link to="/history">
               View all
-            </button>
+            </Link>
 
           </div>
 
@@ -355,6 +375,37 @@ function Home() {
               ))
 
           )}
+        
+        <section className="municipal-section">
+
+          <p className="eyebrow">
+            MUNICIPAL PORTAL
+          </p>
+
+          <Link
+            to="/municipal"
+            className="municipal-card"
+          >
+            <div className="municipal-icon">
+              🏛️
+            </div>
+
+            <div className="municipal-info">
+              <strong>
+                Municipal Dashboard
+              </strong>
+
+              <p>
+                Collection & recycling overview
+              </p>
+            </div>
+
+            <div className="municipal-arrow">
+              →
+            </div>
+          </Link>
+
+        </section>
 
         </section>
 
@@ -382,12 +433,14 @@ function Home() {
          <span>Rewards</span>
         </Link>
 
-        <a href="#market">
-          🛍
+        <Link to="/leaderboard">
+          🏆
           <span>
-            Market
+            Leaderboard
           </span>
-        </a>
+        </Link>
+
+        
 
       </nav>
 
