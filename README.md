@@ -7,6 +7,10 @@ It connects citizens, communities and municipal authorities through one platform
 
 🚀 Live Demo
 
+******
+!!! NOTE FROM OUR DEVELOPERS: !!!!
+PLEASE LOG IN/ SIGN UP BEFORE USING THE APP OR SCANNING PICTURES.
+******
 Deployed Application:
 https://bin-there-six.vercel.app/
 
