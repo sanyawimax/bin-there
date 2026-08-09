@@ -1,6 +1,13 @@
 import requests
 
-url = "http://127.0.0.1:5000/classify"
+BASE_URL = "https://bin-there.onrender.com/"
+
+
+# =========================================================
+# TEST /CLASSIFY
+# =========================================================
+
+print("\n========== TEST CLASSIFY ==========")
 
 files = {
     "image": open("test-images/vegetable-waste.jfif", "rb")
@@ -11,7 +18,7 @@ data = {
 }
 
 response = requests.post(
-    url,
+    f"{BASE_URL}/classify",
     files=files,
     data=data
 )
@@ -20,6 +27,12 @@ print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
 
+files["image"].close()
+
+
+# =========================================================
+# TEST SIGNUP
+# =========================================================
 
 print("\n========== TEST SIGNUP ==========")
 
@@ -31,67 +44,25 @@ signup_data = {
 }
 
 response = requests.post(
-    "http://127.0.0.1:5000/signup",
+    f"{BASE_URL}/signup",
     json=signup_data
 )
 
 print("Status code:", response.status_code)
-print("Response:", response.json())
-
-# -------------------------
-# Test /user
-# -------------------------
-
-print("\nTesting GET /user...")
-
-user_id = "66b4c103a1b2c3d4e5f67892"
-
-response = requests.get(
-    f"http://127.0.0.1:5000/user/{user_id}"
-)
-
-print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
 
-# -------------------------
-# Test /history
-# -------------------------
 
-print("\nTesting GET /history...")
+# =========================================================
+# TEST USER
+# =========================================================
 
-user_id = "YOUR_USER_OBJECTID"
+print("\n========== TEST GET /USER ==========")
 
-response = requests.get(
-    f"http://127.0.0.1:5000/history/{user_id}"
-)
-
-print("Status code:", response.status_code)
-print("Response:")
-print(response.text)
-
-# -------------------------
-# Test /leaderboard
-# -------------------------
-
-print("\nTesting GET /leaderboard...")
+user_id = "YOUR_REAL_USER_OBJECTID"
 
 response = requests.get(
-    "http://127.0.0.1:5000/leaderboard"
-)
-
-print("Status code:", response.status_code)
-print("Response:")
-print(response.text)
-
-# -------------------------
-# Test /building-leaderboard
-# -------------------------
-
-print("\nTesting GET /building-leaderboard...")
-
-response = requests.get(
-    "http://127.0.0.1:5000/building-leaderboard"
+    f"{BASE_URL}/user/{user_id}"
 )
 
 print("Status code:", response.status_code)
@@ -99,46 +70,99 @@ print("Response:")
 print(response.text)
 
 
-# -------------------------
-# Test /redeem
-# -------------------------
+# =========================================================
+# TEST HISTORY
+# =========================================================
 
-print("\nTesting POST /redeem...")
+print("\n========== TEST GET /HISTORY ==========")
 
-user_id = "66b4c103a1b2c3d4e5f67892"
-reward_id = "6a773298221d5d0abe2c8c66"
+response = requests.get(
+    f"{BASE_URL}/history/{user_id}"
+)
 
-data = {
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+
+# =========================================================
+# TEST LEADERBOARD
+# =========================================================
+
+print("\n========== TEST LEADERBOARD ==========")
+
+response = requests.get(
+    f"{BASE_URL}/leaderboard"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+
+# =========================================================
+# TEST BUILDING LEADERBOARD
+# =========================================================
+
+print("\n========== TEST BUILDING LEADERBOARD ==========")
+
+response = requests.get(
+    f"{BASE_URL}/building-leaderboard"
+)
+
+print("Status code:", response.status_code)
+print("Response:")
+print(response.text)
+
+
+# =========================================================
+# TEST REDEEM
+# =========================================================
+
+print("\n========== TEST REDEEM ==========")
+
+reward_id = "6a7732bd221d5d0abe2c8c6a"
+
+redeem_data = {
     "user_id": user_id,
     "reward_id": reward_id
 }
 
 response = requests.post(
-    "http://127.0.0.1:5000/redeem",
-    json=data
+    f"{BASE_URL}/redeem",
+    json=redeem_data
 )
 
 print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
 
-print("\nTesting GET /municipal/pickups...")
+
+# =========================================================
+# TEST MUNICIPAL PICKUPS
+# =========================================================
+
+print("\n========== TEST MUNICIPAL PICKUPS ==========")
 
 response = requests.get(
-    "http://127.0.0.1:5000/municipal/pickups"
+    f"{BASE_URL}/municipal/pickups"
 )
 
 print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
 
-print("\nTesting GET /municipal/stats...")
+
+# =========================================================
+# TEST MUNICIPAL STATS
+# =========================================================
+
+print("\n========== TEST MUNICIPAL STATS ==========")
 
 response = requests.get(
-    "http://127.0.0.1:5000/municipal/stats"
+    f"{BASE_URL}/municipal/stats"
 )
 
 print("Status code:", response.status_code)
 print("Response:")
 print(response.text)
-
