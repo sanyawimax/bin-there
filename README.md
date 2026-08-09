@@ -8,7 +8,7 @@ It connects citizens, communities and municipal authorities through one platform
 🚀 Live Demo
 
 Deployed Application:
-https://bin-there-six.vercel.app/leaderboard
+https://bin-there-six.vercel.app/
 
 Backend API:
 https://bin-there.onrender.com 
