@@ -1,0 +1,8 @@
+Flask
+flask-cors
+pymongo
+python-dotenv
+google-genai
+Werkzeug
+gunicorn
+Pillow

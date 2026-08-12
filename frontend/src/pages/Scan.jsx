@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import BottomNav from "../components/BottomNav";
+import PageFooter from "../components/PageFooter";
+const API_URL = import.meta.env.VITE_API_URL;
 function Scan() {
   const [image, setImage] = useState(null);
   const [file, setFile] = useState(null);
@@ -8,6 +10,8 @@ function Scan() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const handleImageChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -32,9 +36,10 @@ function Scan() {
       const formData = new FormData();
 
       formData.append("image", file);
+      formData.append("user_id", user.user_id);
 
       const response = await fetch(
-        "http://127.0.0.1:5000/classify",
+        `${API_URL}/classify`,
         {
           method: "POST",
           body: formData,
@@ -104,15 +109,33 @@ function Scan() {
 
           {image ? (
             <>
-              <img
-                src={image}
-                alt="Selected waste"
-                className="preview-image"
-              />
+              <div className="scan-preview">
 
-              <p className="image-selected">
-                Image ready for identification ✓
-              </p>
+                <img
+                  src={image}
+                  alt="Selected waste"
+                  className="preview-image"
+                />
+
+                {loading && (
+                  <>
+                    <div className="scan-overlay"></div>
+                    <div className="scan-line"></div>
+
+                    <div className="scan-status">
+                      <span>✦</span>
+                      Analyzing your waste...
+                    </div>
+                  </>
+                )}
+
+    </div>
+
+    {!loading && (
+      <p className="image-selected">
+        Image ready for identification ✓
+      </p>
+    )}
 
               <label className="upload-button">
                 Change Image
@@ -159,27 +182,7 @@ function Scan() {
         </div>
 
 
-        <div className="language-box">
-
-          <div>
-            <strong>
-              🌐 Language
-            </strong>
-
-            <p>
-              Choose your preferred language
-            </p>
-          </div>
-
-          <select>
-            <option>English</option>
-            <option>বাংলা</option>
-            <option>हिन्दी</option>
-          </select>
-
-        </div>
-
-
+        
         {error && (
           <div className="scan-error">
             ⚠️ {error}
@@ -198,6 +201,9 @@ function Scan() {
         </button>
 
       </main>
+
+      <BottomNav />
+      <PageFooter />
 
     </div>
   );
