@@ -6,9 +6,7 @@ BinThere is an AI-powered smart waste-management platform that helps citizens id
 It connects citizens, communities and municipal authorities through one platform.
 
 🚀 Live Demo
-
-******
-!!! NOTE FROM OUR DEVELOPERS: !!!!
+# ****** !!! NOTE FROM OUR DEVELOPERS: !!!!
 PLEASE LOG IN/ SIGN UP BEFORE USING THE APP OR SCANNING PICTURES.
 ******
 Deployed Application:
